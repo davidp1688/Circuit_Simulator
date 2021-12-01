@@ -9,7 +9,7 @@ def appStarted(app):
     app.dotR = 5
     setGridDots(app)
     app.selectedDot = []
-    app.componentTypes = ["Wire", "DC Voltage Source", "Resistor", "Ground", "DC Current Source"]
+    app.componentTypes = ["Wire", "DC Voltage Source", "Resistor", "Ground", "DC Current Source"]       
     app.selectedComType = ""
     app.comTypeImages = [0]*len(app.componentTypes)
     setComTypeImages(app)
@@ -58,6 +58,7 @@ def setCoordinateGraphNodes(app):
         nodeNum = ((node[0]-app.margin*2)//app.spacing, (node[1]-app.margin*2)//app.spacing)
         app.coordinateGraph.addNode(nodeNum)
 #loads and scales images for each component type
+#citations for images located in Citations.docx file
 def setComTypeImages(app):
     app.comTypeImages[0] = app.loadImage('Wire.png')
     app.comTypeImages[0] = app.scaleImage(app.comTypeImages[0], 1/5.5)
@@ -210,6 +211,7 @@ def mousePressed(app, event):
                     app.selectingCom = True
                     app.selectedNodes = []
                     app.newComponent = None
+                    app.selectedComType = ""
 #handles all key presses
 def keyPressed(app, event):
     #depending on component type, correct attribute will be modified
@@ -386,8 +388,11 @@ def drawComponentTypes(app, canvas):
     canvas.create_text(app.margin*app.boxWidth/2, app.margin*1.8, text="Components", font="Arial 15")
     for c in range(len(app.componentTypes)):
         component = app.componentTypes[c]
+        rectFill = "white"
+        if app.selectedComType == component:
+            rectFill = "green"
         canvas.create_rectangle(0, app.margin*2+app.boxHeight*c, app.boxWidth, 
-                                app.margin*2+app.boxHeight*(c+1), width=8)
+                                app.margin*2+app.boxHeight*(c+1), width=8, fill=rectFill)
         canvas.create_text(app.boxWidth/2, app.margin*2+app.boxHeight*(c+0.1), text = component)
         canvas.create_image(app.boxWidth/2, app.margin*2+app.boxHeight*(c+0.5), image =ImageTk.PhotoImage(app.comTypeImages[c]))
 #draws instructions for corresponding task
@@ -397,17 +402,17 @@ def drawInstructions(app, canvas):
         if app.settingVoltage:
             canvas.create_text(app.width/2, app.margin*4/3, 
                        text="Enter a numeric voltage and press enter when done", font="Arial 20")
-            canvas.create_text(0, app.height-app.margin, text=f'New Voltage = {app.newVoltage} V', 
+            canvas.create_text(0, app.height-app.margin*2/3, text=f'New Voltage = {app.newVoltage} V', 
                                font="Arial 10", anchor="w")
         elif app.settingResistance:
             canvas.create_text(app.width/2, app.margin*4/3, 
                        text="Enter a numeric resistance and press enter when done", font="Arial 20")
-            canvas.create_text(0, app.height-app.margin, text=f'New Resistance = {app.newResistance} ohms', 
+            canvas.create_text(0, app.height-app.margin*2/3, text=f'New Resistance = {app.newResistance} ohms', 
                                font="Arial 10", anchor="w")
         elif app.settingCurrent:
             canvas.create_text(app.width/2, app.margin*4/3, 
                        text="Enter a numeric current and press enter when done", font="Arial 20")
-            canvas.create_text(0, app.height-app.margin, text=f'New Current = {app.newCurrent} A', 
+            canvas.create_text(0, app.height-app.margin*2/3, text=f'New Current = {app.newCurrent} A', 
                                font="Arial 10", anchor="w")
         else:
             canvas.create_text(app.width/2, app.margin*4/3, 
@@ -431,8 +436,7 @@ def drawInstructions(app, canvas):
     elif app.run:
         canvas.create_text(app.width/2, app.margin*4/3, 
                        text="Click on components to see component voltages and current", font="Arial 20")
-#draws active components on the board
-#draws rotated component image with lines connecting image to corresponding nodes
+#draws component with one end at the starting node and the other end at the mouse cursor position
 def drawNewComponent(app, canvas):
     if len(app.selectedNodes) == 1:
         if app.selectedComType == "Wire":
@@ -465,6 +469,8 @@ def drawNewComponent(app, canvas):
         else:
             if comType == 0:
                 canvas.create_line(node1[0], node1[1], app.mouseX, app.mouseY, width=3, fill="red")
+#draws active components on the board
+#draws rotated component image with lines connecting image to corresponding nodes
 def drawActiveComponents(app, canvas):
     for comType in range(len(app.activeComponents)):
         for com in app.activeComponents[comType]:
